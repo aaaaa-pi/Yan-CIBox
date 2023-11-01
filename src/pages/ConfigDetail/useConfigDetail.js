@@ -1,6 +1,8 @@
-import {getConfigDetail} from './api'
+import {getConfigDetail,getStopBuild} from './api'
+import {postUpdate} from '../ConfigList/api'
 import { useRoute } from 'vue-router'
-import {ref,onMounted,onUnmounted} from 'vue'
+import {ref,onMounted,onUnmounted, reactive,watchEffect} from 'vue'
+import { ElMessage } from 'element-plus'
 import {io} from 'socket.io-client'
 
 export default function useConfigDetail() {
@@ -9,7 +11,9 @@ export default function useConfigDetail() {
     const route = useRoute()
     const stream = ref('')
     const loading = ref(false)
-    const configDetail = ref({
+    const stopLoading = ref(false)
+    const configDetail = reactive({
+        id: '',
         projectName: '',
         gitUrl:'',
         gitBranch:'',
@@ -19,9 +23,38 @@ export default function useConfigDetail() {
     const initData = async() => {
         try {
             const res = await getConfigDetail(route.params)
-            configDetail.value = res
+            Object.keys(configDetail).forEach(key => {
+                configDetail[key] = res[key]
+            })
+            configDetail.id = route.params.id
         }catch(e){
             console.error(e);
+        }
+    }
+
+    const handleStopBuild = async() => {
+        try {
+            stopLoading.value = true
+            ElMessage({
+                message: '停止构建中',
+                type: 'warning',
+              })
+            const res = await getStopBuild()
+            if(res !== 'success'){
+                ElMessage({
+                    message: '还未获取到构建序号,请稍后重试',
+                    type: 'error',
+                })
+            }else {
+                ElMessage({
+                    message: '停止构建成功',
+                    type: 'success',
+                })
+            }
+            stopLoading.value = false
+        }catch(e) {
+            console.error(e)
+            stopLoading.value = false
         }
     }
 
@@ -44,7 +77,11 @@ export default function useConfigDetail() {
         ioInstance.value.on('build:data', (data) => {
             stream.value = data
         })
-        ioInstance.value.on('build:error',(err) => {})
+        ioInstance.value.on('build:error',(err) => {
+            loading.value = false
+            err = JSON.stringify(err)
+            stream.value = `构建错误：${err}`
+        })
         ioInstance.value.on('build:end',() => {
             loading.value = false
         })
@@ -56,6 +93,16 @@ export default function useConfigDetail() {
             ioInstance.value.emit('build:start')
         }else {
             initSocket()
+        }
+    }
+
+    const updateConfig = async() => {
+        try {
+            await postUpdate(configDetail)
+            
+            ElMessage.success('配置更新成功')
+        }catch (err) {
+            ElMessage.error('配置更新失败')
         }
     }
 
@@ -76,6 +123,9 @@ export default function useConfigDetail() {
         configDetail,
         handleBuild,
         stream,
-        loading
+        loading,
+        handleStopBuild,
+        stopLoading,
+        updateConfig
     }
 }

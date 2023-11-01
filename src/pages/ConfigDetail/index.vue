@@ -20,10 +20,12 @@
       <el-form-item class="basis-[48%]" label="上传路径">
         <el-input v-model="configDetail.uploadPath" placeholder="请输入上传路径"/>
       </el-form-item>
+      <el-button type="primary" class="basis-[48%]" @click="updateConfig">更新配置</el-button>
     </el-form>
 
     <el-divider>操作区域</el-divider>
       <el-button type="primary" @click="handleBuild" :loading="loading">开始构建</el-button>
+      <el-button type="danger" @click="handleStopBuild" :loading="stopLoading">停止构建</el-button>
       <el-button type="primary">构建历史</el-button>
       <el-button type="warning" style="background: #f39c12">回滚</el-button>
     <el-divider>构建日志</el-divider>
@@ -41,8 +43,11 @@ import useConfigDetail from './useConfigDetail'
 const {
   configDetail,
   handleBuild,
+  handleStopBuild,
   stream,
-  loading
+  loading,
+  stopLoading,
+  updateConfig
 } = useConfigDetail()
 
 
