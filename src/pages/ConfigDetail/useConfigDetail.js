@@ -24,7 +24,7 @@ export default function useConfigDetail() {
         try {
             const res = await getConfigDetail(route.params)
             Object.keys(configDetail).forEach(key => {
-                configDetail[key] = res[key]
+                configDetail[key] = res.data[key]
             })
             configDetail.id = route.params.id
         }catch(e){

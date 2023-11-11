@@ -3,14 +3,14 @@ import store from "@/store";
 
 router.beforeEach(async (to,from,next) => {
     const user = store.state.user;
-    let currentUser = user.loginUser;
+    // let currentUser = user.loginUser;
+    let token = localStorage.getItem('Authorization');
 
-    console.log(currentUser);
     const needAccess = (to.meta?.access) ?? 'notLogin'
 
     // 需要用户权限的情况
     if(needAccess !== 'notLogin' || to.path === '/') {
-        if(currentUser.userRole === 'notLogin'){
+        if(token === null || token === ''){
            next(`/user/login`)
            return
         }

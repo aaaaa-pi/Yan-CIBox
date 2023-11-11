@@ -49,9 +49,14 @@ const formData = ref({
 const doLogin = async() => {
   try {
     const res = await postLogin(formData.value)
+    let token = 'Bearer ' + res.data.token;
+
     store.commit('user/updateUser', {
-      ...res,
+      username: res.data.username,
       userRole:'User'
+    })
+    store.commit('user/changeLogin', {
+      Authorization: token
     })
     
     ElMessage.success('登录成功')
@@ -60,6 +65,8 @@ const doLogin = async() => {
       replace: true,
     });
   }catch(err){
+    console.log(err);
+    
     ElMessage.error('登录失败，请检查用户名或密码是否正确')
   }
 }

@@ -24,8 +24,8 @@ export default function useConfigList(){
     const dialogTitle = computed(() => isEdit.value ? '更新配置' : '保存配置') 
     const initData = async() => {
         const res = await getConfig(searchParams)
-        searchParams.total = res.total
-        tableData.value = res.list
+        searchParams.total = res.data.total
+        tableData.value = res.data.list
     } 
     const dialogVisible = ref(false)
 
